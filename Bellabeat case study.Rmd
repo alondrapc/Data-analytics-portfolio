@@ -1,0 +1,712 @@
+---
+title: "Bellabeat case study"
+author: "Alondra Perez Cortez"
+date: "2022-10-20"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 4
+    toc_float: TRUE
+    number_sections: TRUE
+    df_print: paged
+---
+
+```{css, echo=FALSE, class.output="scroll-100"}
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 300px;
+}
+```
+
+
+# Introduction
+
+I will be walking you through my R code of the Bellabeat case study project I completed as part of the Google Data Analytics Professional Certificate. This tutorial would be used to walk my team of analysts at Bellabeat through my steps and thought processes while deriving insights from this data set. For this reason, it will be more detailed on the analysis and coding side, and less about the high-level insights that I presented in my [mock presentation to senior executives](https://sites.google.com/view/alondra-perez-cortez/projects/bellabeat-case-study?authuser=0). I will include project overview in the form of a statement of the business task, data overview, data clean up documentation, summary of data analysis, and a summary of insights that would be presented to senior executives.
+
+If you have any questions, please feel free to email me at apcalondraperezcortez (at) gmail.com or via [LinkedIn](https://www.linkedin.com/in/alondra-perez-cortez/). If you want to check out more of my work, visit my [portfolio](https://sites.google.com/view/alondra-perez-cortez/projects?authuser=0).
+
+## Project Overview - Business Task
+
+In this project, I will be using competitor data to explore daily habits of current consumers of smart devices. This insight will help guide marketing and development strategies for Bellabeat.
+
+In this dataset, I chose to focus on: feature usage, times of usage, and sleep trends. To guide my analysis, the following research questions were posed:
+
+1.  What features of the FitBit are most used?
+    -   Is there a relationship between engagement of a feature and activity?
+2.  What times do users log in steps?
+    -   Does this change with activity intensity?
+3.  Is there a relationship between sleep and activity?
+    -   Does sleep delay, as a measure of sleep quality, change with respect to activity?
+
+## Data Overview
+
+### Source
+
+The chief creative officer of Bellabeat would like my insights to be derived from [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit), a CC0: Public Domain data set published on Kaggle.com by user Mobius. This data was collected via the crowdsourcing website for businesses, Amazon Mechanical Turk (MTurk) over 31 days in 2016. The researchers who collected this data originally published it on [Zenodo](https://zenodo.org/record/53894#.YMoUpnVKiP9). The aim of the researchers was to establish a protocol where fitness data could be collected remotely.
+
+Sources:
+
+[Furberg, R., Brinton, J., Keating, M., & Ortiz, A. (2016). Crowd-sourced Fitbit datasets 03.12.2016-05.12.2016 [Data set]. Zenodo. https://doi.org/10.5281/zenodo.53894](https://zenodo.org/record/53894#.YMoUpnVKiP9)
+
+[Brinton JE, Keating MD, Ortiz AM, Evenson KR, Furberg RD. Establishing Linkages Between Distributed Survey Responses and Consumer Wearable Device Datasets: A Pilot Protocol. JMIR Res Protoc. 2017 Apr 27;6(4):e66. doi: 10.2196/resprot.6513. PMID: 28450274; PMCID: PMC5427248.](https://www.researchprotocols.org/2017/4/e66/).
+
+### Integrity
+
+Mturk is a platform that allows users (Mturkers) to sign up for Human Intelligence Tasks (HIT), usually part of online research studies, and receive monetary compensation. Studies like the one previously cited, opt to use Mturk because it is low cost, the availability of online research support from the site, and the ability to acquire a vast amount of data from a demographically diverse sample (Brinton et al., 2017).
+
+The authors of the study obtained approval from the RTI International Institutional Review Board. Participants were asked to track the following: weight, diet, exercise, blood pressure, blood sugar, sleep patterns, and negative symptoms such as headaches. This study required participants to be at least 18 years old, regularly wear a FitBit device, and consent to submitting their FitBit data.
+
+While studies show that the Mturk platform can reach a more diverse sample than other social media platforms (Brinton et al., 2017), the Mturk platform has room for biases that must be addressed. For example, Mturkers are much less diverse than the US populations in areas such as political views, education, age, and religious views, making data less generalizable (Litman, 2020).
+
+Users are ranked based on a reputation mechanism, or the rate at which they are approved by requestors, or sponsors of the HIT. When researchers only choose Mturkers with high reputations, they are methodically reducing their eligible sample. However, Peer, Vosgerau, and Acquisti (2014) demonstrated that this does not reduce the diversity of the sample.
+
+Based on the above data integrity research, this dataset is deemed appropriate to address the business task.
+
+Sources:
+
+[Litman, L. (2020). Strengths and Limitations of Mechanical Turk. CloudResearch. Retrieved October 21, 2022, from https://www.cloudresearch.com/resources/blog/strengths-and-limitations-of-mechanical-turk/](https://www.cloudresearch.com/resources/blog/strengths-and-limitations-of-mechanical-turk/)
+
+[Peer, E., Vosgerau, J. & Acquisti, A. Reputation as a sufficient condition for data quality on Amazon Mechanical Turk. Behav Res 46, 1023--1031 (2014). https://doi.org/10.3758/s13428-013-0434-y](https://link.springer.com/article/10.3758/s13428-013-0434-y#citeas)
+
+### Summary
+
+Thirty-three FitBit users consented to submit personal data using their FitBit trackers, including minute-level physical activity, physiological markers, and monitoring markers.
+
+There are 18 csv files in the [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit). To answer my research questions, I used 4 of those csv files: daily_activity, sleep_logs, weight_logs, and steps_hour.
+
+### Limitations
+
+The sample size is small at 33 participants. The Central Limit Theorem states that a sample size of at least 30 is often sufficient to trust that the sample mean is approximately equal to the population mean. However, the larger the sample, the better the sample mean is representative of the population mean.
+
+This data set does not include demographic data on participants of this study. Bellabeat's target audience is women. We do not know the sex/gender composition of the sample and this may limit the external validity of my findings. This limitation is also compounded by the general demographic bias of Mturk mentioned above. 
+
+Since this data was collected in 2016, there are potentially new developments to the wearable technology industry that cannot be evaluated. For future studies, I believe it would be helpful to aggregate more recent data and compare it to trends from 2016.
+
+# Process Data
+
+After downloading the data set, I saved it into a safe and secure folder where I will house the data. The address of this folder will serve as my working directory.
+
+Install and loading the packages necessary:
+
+```{r eval = FALSE}
+setwd(path.expand("~/Fitabase Data 4.12.16-5.12.16"))
+  
+  install.packages("tidyverse")
+  install.packages("janitor")
+  install.packages("plotly")
+  install.packages("ggalluvial")
+  if(!require(devtools)) install.packages("devtools")
+  devtools::install_github("kassambara/ggpubr")
+  install.packages("gghighlight")
+  install.packages("gginnards")
+```
+
+```{r results = 'hide', message = FALSE}
+  library(tidyverse)
+  library(janitor)
+  library(plotly)
+  library(ggalluvial)
+  library(ggpubr)
+  library(gghighlight)
+  library(gginnards)
+```
+
+For effective organization, I created output directories to store my results:
+
+```{r eval = FALSE, message = FALSE}
+if (!dir.exists("results")) dir.create("results")
+  if (!dir.exists("results/plots")) dir.create("results/plots")
+  rm(list_of_files)
+```
+
+Reading in the data:
+
+```{r results = 'hide', message = FALSE}
+ #load in csv files
+    daily_activity <- read_csv(file = "dailyActivity_merged.csv")
+    sleep_logs <- read_csv(file = "sleepDay_merged.csv")
+    weight_logs <- read_csv(file = "weightLogInfo_merged.csv")
+    steps_hour <- read_csv(file = "hourlySteps_merged.csv")
+    
+```
+
+The clean_names function will change columns names to adhere to data naming conventions:
+
+```{r}
+#original column names
+colnames(steps_hour)
+
+ daily_activity <- clean_names(daily_activity)
+    sleep_logs <- clean_names(sleep_logs)
+    weight_logs <- clean_names(weight_logs)
+    steps_hour <- clean_names(steps_hour)
+
+#cleaned column names
+colnames(steps_hour)
+
+```
+
+Checked for duplicate combinations of data per row and removed them from the data frame
+```{r results = 'hide', message = FALSE}
+get_dupes(daily_activity) #no duplicate combination of data found
+sleep_dupes <- get_dupes(sleep_logs) #found duplicates, saved them to anti-join later
+get_dupes(weight_logs) #no duplicate combination of data found
+get_dupes(steps_hour) #no duplicate combination of data found
+    
+#anti-join sleep_logs and sleep_dupes to delete duplicates
+sleep_logs <- anti_join(sleep_logs, sleep_dupes)
+rm(sleep_dupes)
+```
+
+Double checking accurate data types
+```{r}
+sapply(steps_hour,class) #activity_hour is character,when it should be date-time
+```
+
+<details><summary>Click here for the rest of the code chunk code</summary>
+```{r, class.output = "scroll-5"}
+sapply(daily_activity,class) #activity_date is character, when it should be date
+sapply(sleep_logs,class) #sleep_day is character,when it should be date
+sapply(weight_logs,class) #date is character,when it should be date
+```
+</details>
+<br/><br/>
+Changing dates to date format
+```{r}
+daily_activity$activity_date <- as.Date(strptime(daily_activity$activity_date, "%m/%d/%Y"))
+sleep_logs$sleep_day <- as.Date(strptime(sleep_logs$sleep_day, "%m/%d/%Y"))
+weight_logs$date <- as.Date(strptime(weight_logs$date, "%m/%d/%Y"))
+steps_hour$activity_hour <- strptime(steps_hour$activity_hour, "%m/%d/%Y %I:%M:%S %p")
+```
+ 
+ 
+Created a histogram to display the distribution of steps taken each day
+
+```{r message = FALSE, warning = FALSE}
+p <- ggplot(daily_activity, aes(x=total_steps)) + 
+      geom_histogram(aes(y = ..density..), colour = "#1F3552", fill = "#D8E2EB") + 
+      geom_density(lwd = 0.8) +
+      theme_linedraw() +
+      labs(title = "Historgram of Total Steps", 
+           x = "Total Steps", y = "Density")
+    
+    p
+```
+This is a normal looking curve with a positive skew and extreme outliers after 25,000 steps.
+
+To save this plot (and future plots) into the directory, use the following code:
+```{r eval = FALSE}
+ggsave("results/plots/steps_histogram.png", p, width = 4, height = 3, units = "in", dpi = 400, bg = "white")
+    
+```
+
+Filtered out days where no activity is recorded and outliers and rerun saved results
+
+```{r}
+daily_activity <- daily_activity[(daily_activity$total_steps>0) & (daily_activity$total_steps < 25000) ,]
+   
+```
+
+Produce new histogram
+```{r message = FALSE, warning = FALSE}
+ggplot(daily_activity, aes(x=total_steps)) + 
+      ggtitle("Historgram of Total Steps") + 
+      geom_histogram(aes(y = ..density..), colour = "#1F3552", fill = "#c8c7d7") + 
+      geom_density(lwd = 0.8) +
+      theme_linedraw() +
+      labs(title = "Historgram of Total Steps Cleaned", 
+           x = "Total Steps", y = "Density")
+```
+There is still a skew, but we have minimized extreme bias.
+
+# Analysis
+
+Run descriptive statistics to familiarize myself with the data.
+
+```{r}
+summary_user_activity_monthly <-
+      daily_activity  %>% 
+      group_by(id) %>% 
+      summarise(
+        record_count = n(),
+        sum_steps_monthly = sum(total_steps),
+        min_steps_monthly = min(total_steps),
+        max_steps_monthly = max(total_steps),
+        median_steps_monthly = median(total_steps),
+        avg_steps_monthly = mean(total_steps),
+        std_steps_monthly = sd(total_steps)
+      )
+```
+Some people have really low engagement which could be skewing analyses. To further investigate this, I will categorize people into engagement groups.
+
+## Feature Usage
+
+### Preparing data to plot
+Here, I am examining how often people tracked their health and grouping them into never, low, moderate, or high recording groups. This will be done for step count, sleep records, and weight logging.
+
+```{r}
+recording_frequency <- 
+        daily_activity %>%
+        count(id) %>%
+        mutate(steps_groups = case_when(
+          n <= 10 ~ "Low",
+          n <= 20 ~ "Moderate",
+          n <= 31 ~ "High"
+        )
+           )
+       colnames(recording_frequency)[2] <- "steps_records"
+      #counting how many nights each participant recorded their sleep and also grouping them
+       #based on frequency of recording
+      sleep_records <-
+        sleep_logs %>%
+        count(id) %>%
+        mutate(sleep_groups = case_when(
+          n <= 10 ~ "Low",
+          n <= 20 ~ "Moderate",
+          n <= 31 ~ "High"
+        )
+        )
+      colnames(sleep_records)[2] <- "sleep_records"
+      #doing the same for weight
+      weight_records <-
+        weight_logs %>%
+        count(id) %>%
+        mutate(weight_groups = case_when(
+          n <= 10 ~ "Low",
+          n <= 20 ~ "Moderate",
+          n <= 31 ~ "High"
+        )
+        )
+      colnames(weight_records)[2] <- "weight_records"
+```
+We need to assign people who did not record anything for sleep or weight recording features into the "Never" group. 
+
+```{r, message = FALSE}
+recording_frequency <- recording_frequency %>% 
+  full_join(sleep_records) %>%
+        full_join(weight_records) 
+
+recording_frequency <- recording_frequency %>%
+  replace_na(list(sleep_records = 0, weight_records = 0, sleep_groups = "Never", weight_groups = "Never"))
+```
+
+This would also be the perfect time to make sure that the recording frequency groups are factored where "Never" is less than "Low", which is less than "Moderate", which is less than "High".
+
+```{r, message = FALSE}
+recording_frequency[c(3, 5, 7)] <- 
+        lapply(recording_frequency[c(3, 5, 7)], factor, levels = c("High", "Moderate", "Low", "Never"), ordered = TRUE)
+      
+      #cleaning my environment and removing obsolete data frames
+      rm(sleep_records, weight_records)
+```
+
+### Recording frequency, Alluvial plot
+This will visualizes the change in group sizes between step counts, sleep, and weight recording.
+
+Transforming the recording frequency data frame into a long format to make the building of the alluvial plot easier.
+
+```{r}
+alluvial_frequency <- recording_frequency[c("id", "steps_groups", "sleep_groups", "weight_groups")] %>%
+  pivot_longer(!id )
+  
+alluvial_frequency <- transform(alluvial_frequency,value = factor(value, rev(levels(value))))
+```
+```{r, warning = FALSE}
+p  <- 
+    ggplot(alluvial_frequency, aes(x = name, stratum = value, alluvium = id, fill = value, label = value)) +
+    scale_x_discrete(limits = c("steps_groups", "sleep_groups", "weight_groups"), expand = c(.1, .1)) +
+    geom_flow() +
+    geom_stratum(alpha = .5) +
+    geom_text(stat = "stratum", size = 3) +
+    labs(title = "Recording Frequency", x = " ", y = "Proportion of Participants") +
+    scale_fill_brewer(type = "qual", palette = "Set2") +
+    theme(legend.position = "none", 
+          panel.background = element_blank(),
+          axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size = 10),
+          plot.title = element_text(size=18, hjust = 0.5), 
+          axis.title.y = element_text(size = 14))
+
+p
+
+rm(alluvial_frequency)
+```
+
+Interpretations:
+
+* Most participants tracked activity at for least 20 days
+* There is a smaller portion of those people with high activity tracking recorded sleep, and an even smaller portion of those tracked weight over the course of the 31 days.
+* Those who tracked activity between 10-20 days, tracked their sleep and weight at decreasing rates, if at all.
+* Over half of participants tracked sleep.
+* Most participants did not record their weight.
+
+### Activity vs Recording engagement, Scatter plot
+
+Is there a relationship between average activity per day and engagement with the recording device?
+
+```{r}
+#removed id "4057192912" because they only recorded 3 out of 31 days
+summary_user_activity_monthly <- summary_user_activity_monthly[!(summary_user_activity_monthly$id == "4057192912"), ]
+                                                                                  
+  p <- summary_user_activity_monthly %>% 
+    ggplot(aes(x = record_count, y = avg_steps_monthly)) +
+    geom_point() +
+    geom_smooth(method = lm) +
+    stat_cor(aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), size = 4) +
+    theme_linedraw() +
+    labs(title = "Recording Frequency vs Monthly Steps", 
+         x = "Number of Days Recorded", y = "Average Steps Per Participant") +
+    theme(plot.title = element_text(size = 12, hjust = 0.5),
+          axis.title.x = element_text(size = 10),
+          axis.title.y = element_text(size = 10)) 
+
+  p
+```
+
+There is a moderate positive correlation, but it is statistically significant. In other words, the more someone records their health data, we see a higher average daily steps.
+  
+## Trends in Time
+
+What patterns are present in times that people record activity? I hypothesize that exercise times will align with the typical schedule most people have, which is a 9-5 job.
+```{r}
+steps_hour$hour <- strftime(steps_hour$activity_hour, "%H:%M") #remove the date and just have time
+
+ p <- steps_hour %>%
+      group_by(hour) %>%
+      summarize(avg_steps_hourly = mean(step_total)) %>% #find average steps for each hour
+      ggplot(aes(hour, avg_steps_hourly, group = 1)) +
+      geom_line(color = "#900C3F") +
+      ggtitle("Average Steps Per Hour") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+            text = element_text(size = 8)) +
+      xlab("Hour of the Day") + ylab("Average Step Count") +
+      annotate("rect", xmin = "11:00", xmax = "15:00", 
+               ymin = 0, ymax = 700, alpha = .1) +
+      annotate("rect", xmin = "17:00", xmax = "20:00", 
+               ymin = 0, ymax = 700, alpha = .1) +
+      annotate("text", x = "13:00", y = 650, 
+               label = "Afternoon", hjust = "center", size = 3) +
+      annotate("text", x = 19.5, y = 650, 
+               label = "Evening", hjust = "center", size = 3)
+    
+ p
+```   
+
+We can see that the early afternoon and evening are the most popular ranges of times to log in some steps across our sample. However, I believe there may be more to this pattern than we can see here. Now, this graph shows us the averages of the whole sample, but some factors that may affect when someone decides to log their steps can vary on many things. In our data, we can identify and account for at least one of those factors – activity level.
+
+Let's take a look at the distribution of the total steps each participant took.
+
+```{r}
+p <- summary_user_activity_monthly %>%
+    ggplot(aes(x = sum_steps_monthly)) + 
+    geom_histogram(aes(y = ..density..), bins = 15, colour = "#1F3552", fill = "#D8E2EB") + 
+    geom_density(lwd = 0.8) +
+    theme_linedraw() +
+    labs(title = "Density Histogram of Total Steps Per Participant", 
+         x = "Sum of Steps Per Participant", y = "Density") +
+    theme(plot.title = element_text(size = 10, hjust = 0.5),
+          axis.title.x = element_text(size = 8),
+          axis.title.y = element_text(size = 8)) 
+  
+p
+```
+
+Here, I decided to plot the distribution of total steps each participant took over the course of the recorded 31 days to estimate their fitness lifestyle. I chose to work with the sum of monthly steps because I would like to consider people who are more consistent with their fitness schedule as "more active". In other words, people who logged more steps are considered to be more active than those who logged less steps over the 31 days. 
+
+The most active of this sample are on the right side of this histogram, whereas the least active people of this sample are on the left side. 
+
+To check if there are differences in time-related habits between people who are more or less active, we can divide the histogram above into four parts, otherwise known as quartiles. Usually, we would not want to convert continuous variables, such as activity, into categorical variables because we loose nuance and statistical power. However, because I am looking at fitness as a quality shared by groups of people in the sample, I decided it will be the clearest to show as groups of fitness level.
+
+```{r}
+#sum_quartile <- divide distributions of total steps taken in the month to show more activity
+ summary_user_activity_monthly$sum_quartile <- as.factor(ntile(summary_user_activity_monthly$sum_steps_monthly, 4))
+  
+ p <- ggplot(summary_user_activity_monthly, aes(x=sum_steps_monthly, fill = sum_quartile)) +
+   geom_histogram(aes(y = ..density..), bins = 15, colour = "#1F3552") +
+   theme_linedraw() +
+   geom_vline(xintercept = quantile(summary_user_activity_monthly$sum_steps_monthly)[c(2, 3, 4)], size = 1, colour = "#FF3721", linetype = "dashed") +
+   ggtitle("Density Histogram of Total Steps Per Participant") +
+   xlab("Sum Steps Per Participant") + ylab("Density") +
+   labs(fill = "Quartile")
+ 
+ p
+```
+ 
+This histogram shows the distribution of total steps taken by participants in 31 days but is now color coded into the quartiles. Again, the most active people of the sample are quartile 4 (purple) and the least active people of the sample are quartile 1 (red).
+
+Now, using these same groups, we can recreate the line graph of average steps per house.
+
+```{r, message = FALSE}
+#add quartile assignments
+steps_hour <- inner_join(steps_hour, summary_user_activity_monthly[ , c("id", "sum_quartile")], by = "id")
+    
+  p <- steps_hour %>%
+      group_by(sum_quartile, hour) %>%
+      summarize(avg_steps_hourly = mean(step_total)) %>% #find average steps for each hour
+      ggplot(aes(hour, avg_steps_hourly, group = sum_quartile, color = sum_quartile)) +
+      geom_line() +
+      ggtitle("Average Steps Per Hour") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+      xlab("Hour of the Day") + ylab("Average Steps") +
+      labs(color = "Quartile") +
+      annotate("rect", xmin = "16:00", xmax = "20:00", 
+               ymin = 0, ymax = 1250, alpha = .1) +
+      annotate("rect", xmin = "11:00", xmax = "15:00", 
+               ymin = 0, ymax = 1250, alpha = .1) +
+      annotate("rect", xmin = "07:00", xmax = "10:00", 
+               ymin = 0, ymax = 1250, alpha = .1) +
+      annotate("text", x = "18:00", y = 1210, 
+               label = "Evening", hjust = "center", size = 2.5) +
+      annotate("text", x = "13:00", y = 1210, 
+               label = "Afternoon", hjust = "center", size = 2.5) +
+      annotate("text", x = 9.5, y = 1210, 
+               label = "Morning", hjust = "center", size = 2.5)
+    
+    p
+```
+
+We see that the top two most active groups of this sample peaks three times: around morning, afternoon and evening. These times coincide around breaks of a typical 9-5 job. The second to least active group (quartile 2) has a small peak in the morning time, but I see the afternoon and evening peaks as stronger and clearer. Then lastly, we have quartile 1 (or the least active of the sample) seems to have one small peak in the late morning.
+
+```{r, warning = FALSE, message = FALSE}
+ p <- steps_hour %>%
+      group_by(sum_quartile, hour) %>%
+      summarize(avg_steps_hourly = mean(step_total)) %>% #find average steps for each hour
+      ggplot(aes(hour, avg_steps_hourly, group = sum_quartile, color = sum_quartile)) +
+      geom_line() +
+      ggtitle("Average Steps Per Hour") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+      xlab("Hour of the Day") + ylab("Average Steps") +
+      labs(color = "Quartile") +
+      gghighlight(sum_quartile == 1, use_direct_label = FALSE) +
+      annotate("rect", xmin = "09:00", xmax = "12:00", 
+               ymin = 0, ymax = 1250, alpha = .1) +
+      annotate("text", x = 11.5, y = 1100, 
+               label = "Late\n Morning", hjust = "center", size = 2.5)
+
+p
+```
+
+In summary, dividing the sample into groups based on activity revealed more information that looking at the group as a whole. This can serve as encouragement for Bellabeat’s marketing and development team to tailor user experience based on consumer habits and fitness skill. As an example, perhaps if the app identifies hours of the day in which they are active, it can remind them to hydrate as they prepare to go on their daily workout, further encouraging our consumer’s to continue to engage with the product.
+
+## Sleep Trends
+
+### Time asleep and total steps per day
+
+Do people who engage in more activity per day, sleep more than people who engage in less activity? Could time in which high activity is recorded affect this relationship?
+
+Since I do not have the time in which the person went to sleep, I would not be able to find the exact difference between those two variables (intense work out and bed time). However, I can use the hour of max steps as a color code on the relationship between how much time they spent asleep relative to the steps taken that day. 
+
+Here, I identified the hour in which most steps were recorded. This indicated to me when their most intense exercise was done.
+
+```{r, message = FALSE}
+#split datetime to date and hour
+steps_hour <- separate(steps_hour, activity_hour, c("date", "hour"), sep = " ")
+steps_hour$date <- as.Date(steps_hour$date)
+    
+#calculate hour of max steps taken
+max_step_hour <- steps_hour %>%
+  group_by(id, date) %>%
+  summarise(max_step_hour = hour[which.max(step_total)])
+
+#change to integer so it is accepted in the legend
+max_step_hour$max_step_hour <- as.numeric(gsub("(.*?)\\s|\\:00*", "", max_step_hour$max_step_hour))
+    
+head(max_step_hour)    
+```
+
+I created a scatter plot where I compared total minutes asleep to total steps taken that day for everyone in the sample who recorded sleep and steps for that day. I color coded the hour in which most steps were taken as an estimation if the time of a participant's most intense workout affected their sleep. 
+
+```{r, message = FALSE}
+#add total steps per day for each night of sleep
+sleep_logs <- inner_join(sleep_logs, daily_activity[ , c("id", "activity_date", "total_steps")], by = c("id" = "id", "sleep_day" = "activity_date"))
+
+sleep_logs <- inner_join(sleep_logs, max_step_hour, by = c("id" = "id", "sleep_day" = "date"))
+    
+  
+      p <- sleep_logs %>% 
+        ggplot(aes(x = total_steps, y = total_minutes_asleep, color = max_step_hour)) +
+        geom_point() +
+        scale_color_gradientn(colours = rainbow(5),
+                              breaks = c(seq(0, 20, 5)),
+                              labels = c(sprintf(
+                                "%s:00",
+                                seq(0, 20, 5)
+                              ))) +
+        geom_smooth(method = lm, color = "black", alpha = 0.3) +
+        stat_cor(aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
+                 size = 4, label.x = 10000) +
+        theme_linedraw() +
+        labs(title = "Sleep vs Steps (per day)", 
+             x = "Minutes Asleep", y = "Steps",
+             color = "Hour of Max Step") +
+        theme(plot.title = element_text(size = 12, hjust = 0.5),
+              axis.title.x = element_text(size = 10),
+              axis.title.y = element_text(size = 10),
+              legend.key.size = unit(5, 'mm'),
+              legend.title = element_text(size = 8),
+              legend.text = element_text(size = 6)) 
+      
+      p
+```
+
+Unexpectedly, we see a weak, but statistically significant negative relationship between sleep and steps per day. Meaning that in this sample, as someone takes more steps per day, they slept less. 
+
+Additionally, I saw there is no clear relationship between intensity of workouts later in the day and time asleep. If I saw more blues and purples or even reds on the right and more yellow and green on the left, that would demonstrate that people who are engaging in more exercise close to bed time are getting less total sleep.
+
+### Sleep delay
+
+Another metric of sleep I can examine is sleep delay. In the `sleep_logs` data frame, we have `total_time_asleep` and `total_time_in_bed`. The difference between the two, would tell us how long it took for the participant to fall asleep, but not what time they fell asleep.
+
+For the sample, the average sleep delay was about 40 minutes.
+```{r}
+sleep_logs$difference_bedtime <- sleep_logs$total_time_in_bed -sleep_logs$total_minutes_asleep
+
+mean(sleep_logs$total_time_in_bed - sleep_logs$total_minutes_asleep)
+```
+
+To visualize these variables, I will construct overlapping histograms and the difference between the peaks, will demonstrate the average sleep delay.
+
+First, I will prepare the data for the overlaying histograms by putting it in long format and the descriptive statistics label.
+
+```{r, warning = FALSE}
+#prepping the data for histogram (long format)
+bedtime_histogram <- inner_join(sleep_logs[c("id", "total_minutes_asleep", "total_time_in_bed")], summary_user_activity_monthly[c("id", "sum_quartile")], by = "id") %>%
+  pivot_longer(!c(id, sum_quartile))
+
+#summarizing data for labels
+mean_difference <- sleep_logs %>%
+  summarise(average_difference = round(mean(difference_bedtime), 2),
+              data_count = n(),
+              group_size = length(unique(id)))
+    
+#making the labels
+mean_difference$label <-
+  sprintf("Mean difference = %s minutes\n # of data points = %s\n n = %s",
+              mean_difference$average_difference, 
+              mean_difference$data_count, 
+              mean_difference$group_size)
+```
+Now I can feed this information into `ggplot`
+```{r, warning = FALSE}
+  p <-  bedtime_histogram %>%
+     ggplot(aes(x = value, color = name, fill = name)) +
+      guides(col = FALSE) +
+      geom_histogram(aes(y = ..density..),  position = "identity", alpha = .5, binwidth = 35) + 
+      geom_density(alpha = 0, lwd = .6) +
+      theme_linedraw() +
+      ggtitle("Density Histogram of Time Asleep and In Bed") +
+      xlab("Minutes") + ylab("Density") +
+      geom_label(data = mean_difference, aes(x = 750, y = 0.004, label = label), size = 1.7, inherit.aes = FALSE, hjust = 0) +
+      theme(legend.position = "top",
+            legend.key.size = unit(5, 'mm'),
+            text = element_text(size = 7)) +
+      scale_fill_discrete(name = "Time (minutes)", labels = c("Asleep", "In Bed"))
+      
+  p
+```
+
+To take a closer look at sleep delay, I would like to identify if increased activity had an effect on sleep delay. In a similar fashion to time-related trends, I separated the sleep data by activity quartiles to see if there were any differences in sleep delay affected by activity level.
+
+Again, I will prepare the labels before feeding it into `ggplot`.
+
+<details><summary>Click here for label code</summary>
+
+```{r, warning = FALSE}
+#finding the differences between the peaks of the curves for all groups
+mean_difference <- 
+  inner_join(sleep_logs, summary_user_activity_monthly[c("id", "sum_quartile")], by = "id") %>%
+  group_by(sum_quartile) %>%
+  summarise(average_difference = round(mean(difference_bedtime), 2),
+               data_count = n(),
+               group_size = length(unique(id)))
+
+#making the labels
+mean_difference$label <- sprintf(
+  "Mean difference = %s minutes\n # of data points = %s\n n = %s",
+  mean_difference$average_difference, mean_difference$data_count, mean_difference$group_size
+   )
+```
+</details>
+
+```{r, eval = FALSE, warning = FALSE}    
+ p <- ggplot(bedtime_histogram, aes(x = value, color = name, fill = name)) +
+   #quartile 1 needs different bin widths because  its unique distribution does not fit the set bin width nicely  
+   geom_histogram(data = subset(bedtime_histogram, sum_quartile == 1), aes(y = ..density..),  position = "identity", alpha = .5, bins = 14) +
+     geom_histogram(data = subset(bedtime_histogram, sum_quartile >= 2), aes(y = ..density..),  position = "identity", alpha = .5, binwidth=35) +
+     guides(col = FALSE) +
+     geom_density(alpha = 0, lwd = .6) +
+     theme_linedraw() +
+     ggtitle("Density Histogram of Time Asleep and In Bed") +
+     xlab("Minutes") + ylab("Density") +
+     facet_wrap(~sum_quartile)+
+     geom_label(data = mean_difference, aes(x = 625, y = 0.0045, label = label), 
+                size = 2, inherit.aes = FALSE, hjust = 0) +
+     theme(legend.position = "top",
+           legend.key.size = unit(5, 'mm'),
+           text = element_text(size = 7)) +
+     scale_fill_discrete(name = "Time (minutes)", labels = c("Asleep", "In Bed"))
+  
+   p
+```
+<!-- This image has not been rendering when I knit, but it populated fine when I built it in my original script. Try running it in your console if it also gives you trouble in the Rmarkdown document. -->
+![](results/plots/histogram_sleep_difference_quartile.png)
+
+Interpretations:
+
+* The shapes of the curves are more variant across activity levels
+* Within quartiles 2 and 3, the shape of the curves are the same, but shifted over for "time in bed"
+* Quartiles 1 and 4 show different shapes for "time asleep" and "time in bed".
+  + Because quartile 1 "time asleep" density peak is higher than "time in bed" density peak, it indicates that there were more data points surrounding the mean of "time asleep".
+  + Similarly, there were more data points surrounding the "time in bed" peak of quartile 4, resulting in a higher peak than the "time asleep" peak.
+* Quartile 4 had the highest sleep delay ratio at almost an hour. Followed by quartile 1, 2, and 3, respectively.
+  + Quartile 4 showed the worst sleep quality. This is consistent with the negative relationship between sleep and activity in the previous segment of "sleep trends". 
+  + The order of sleep quality is also consistent with the weak nature of the aforementioned relationship.
+
+## Analysis Summary
+
+Key findings:
+
+* Feature usage
+  + Step-counting was the most used feature by FitBit consumers. Followed by sleep recording.
+  + Weight-logging was seldom used by FitBit consumers.
+  + A positive relationship was found between engaging with the FitBit device and steps.
+  
+* Trends in time
+  + More active users log in the most steps around usual break times of a 9-5 job (e.g mid-morning, lunch time, and after work hours)
+  + Less active users have less step logging peak times. Quartile 2 had two peaks and quartile 1 had one peak.
+  
+* Sleep trends
+  + As people of this sample logged more steps, they recorded less time asleep.
+  + Quartile 4 showed the highest sleep delay. This was followed by quartiles 1,2, and 3, in that order.
+
+# Recommendations
+
+* Encourage engagement with the product as means to encourage fitness goals
+  + Point system (Gold’s Gym)
+  + Goals and streaks (Duo Lingo)
+* Assess for any barriers preventing users from engaging in features like weight logging
+  + Adding automated data entry with devices such as Bluetooth scales
+  + Cleanliness reminders of the watch
+  + Offer interchangeable, fashionable straps/cases for devices
+* Personalize notifications to individual fitness habits such as fitness schedules
+  + Recommending work out based on intensity trends
+  + User inputted schedule with encouragement notifications to “Keep it up!”
+* Introduce sleep hygiene recommendations for users
+  + Link credible sources for sleep hygiene
+  + Notify users of winding down before bedtime (Apple Health)
+* Reminders to charge their devices during the day and 
+    wear it to sleep
+
+In conclusion, my goal is to help Bellabeat better understand its consumer base and offer practical solutions to help out customers achieve their fitness goals. Following my recommendations will greatly increase engagement with our products and long term success of Bellabeat. I hope this tutorial was clear and useful.
+
+Again, please feel free to reach out to me for any comments or questions at apcalondraperezcortez (at) gmail.com or via [LinkedIn](https://www.linkedin.com/in/alondra-perez-cortez/). To check out my other work, visit my [portfolio](https://sites.google.com/view/alondra-perez-cortez/projects?authuser=0).
+
+Thank you!!
+
