@@ -8,7 +8,7 @@
 
 This is my first SQL project where I will be demonstrating beginning to intermediate SQL skills using Microsoft SQL and SQLite. I first wrote my script in SQLite Studio, but found myself troubled with how to share my finished document in an elegant manner. I like the look of notebooks, but there are not a lot of options for SQLite and Mac users like myself. However, I found a really great [youtube video](https://www.youtube.com/watch?v=glxE7w4D8v8) that taught me how to add MS SQL to my Mac. So I went back to my script and edited it for MS SQL, but left my SQLite script in at the bottom of this page.
 
-If you have any question, please feel free to email me at apcalondraperezcortez (at) gmail.com or via [LinkedIn](https://www.linkedin.com/in/alondra-perez-cortez/). If you want to check out more of my work, please visit my [portfolio](https://sites.google.com/view/alondra-perez-cortez/projects).
+If you have any questions, please feel free to email me at apcalondraperezcortez (at) gmail.com or via [LinkedIn](https://www.linkedin.com/in/alondra-perez-cortez/). If you want to check out more of my work, please visit my [portfolio](https://sites.google.com/view/alondra-perez-cortez/projects).
 
 ### <span style="font-size: 14px;"><b>Project Overview</b></span>
 
